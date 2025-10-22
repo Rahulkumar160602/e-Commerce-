@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Products</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .product {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .product h3 {
+            margin-top: 0;
+            color: #ffd700;
+        }
+        .product p {
+            margin: 5px 0;
+        }
+        .add-product {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .add-product h2 {
+            margin-top: 0;
+            color: #ffd700;
+        }
+        input, button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .refresh-btn {
+            background: #2196F3;
+        }
+        .refresh-btn:hover {
+            background: #0b7dda;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>E-Commerce Products</h1>
+
+        <div class="add-product">
+            <h2>Add New Product</h2>
+            <input type="text" id="productName" placeholder="Product Name" required>
+            <input type="number" id="productPrice" placeholder="Price" step="0.01" required>
+            <button onclick="addProduct()">Add Product</button>
+        </div>
+
+        <button class="refresh-btn" onclick="loadProducts()">Refresh Products</button>
+
+        <div class="products" id="productsContainer">
+            <!-- Products will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:4000/products';
+
+        async function loadProducts() {
+            try {
+                const response = await fetch(API_BASE);
+                const products = await response.json();
+                displayProducts(products);
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+        }
+
+        function displayProducts(products) {
+            const container = document.getElementById('productsContainer');
+            container.innerHTML = products.map(product => `
+                <div class="product">
+                    <h3>${product.name}</h3>
+                    <p>ID: ${product.id}</p>
+                    <p>Price: $${product.price}</p>
+                </div>
+            `).join('');
+        }
+
+        async function addProduct() {
+            const name = document.getElementById('productName').value;
+            const price = parseFloat(document.getElementById('productPrice').value);
+
+            if (!name || !price) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, price }),
+                });
+
+                if (response.ok) {
+                    const newProduct = await response.json();
+                    alert(`Product "${newProduct.name}" added successfully!`);
+                    document.getElementById('productName').value = '';
+                    document.getElementById('productPrice').value = '';
+                    loadProducts(); // Refresh the list
+                } else {
+                    alert('Error adding product');
+                }
+            } catch (error) {
+                console.error('Error adding product:', error);
+                alert('Error adding product');
+            }
+        }
+
+        // Load products on page load
+        loadProducts();
+    </script>
+</body>
+</html>
